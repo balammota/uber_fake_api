@@ -1,4 +1,4 @@
-import { handleOptions, jsonResponse, validateBearer } from "@/lib/api-helpers";
+import { handleOptions, handleProtectedRoute } from "@/lib/api-helpers";
 
 const STORE_DETAILS = {
   store_1: {
@@ -29,19 +29,21 @@ export async function OPTIONS() {
 }
 
 export async function GET(request, { params }) {
-  const authError = validateBearer(request);
-  if (authError) return authError;
-
-  const store = STORE_DETAILS[params.store_id];
-  if (!store) {
-    return jsonResponse(
-      {
-        error: "not_found",
-        message: `Store ${params.store_id} not found`,
-      },
-      404
-    );
-  }
-
-  return jsonResponse(store);
+  return handleProtectedRoute(
+    request,
+    `/api/eats/stores/${params.store_id}`,
+    async () => {
+      const store = STORE_DETAILS[params.store_id];
+      if (!store) {
+        return {
+          body: {
+            error: "not_found",
+            message: `Store ${params.store_id} not found`,
+          },
+          status: 404,
+        };
+      }
+      return { body: store };
+    }
+  );
 }

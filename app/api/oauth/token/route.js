@@ -1,48 +1,56 @@
-import { handleOptions, jsonResponse } from "@/lib/api-helpers";
-
-const VALID_CLIENT_ID = "uber-partner";
-const VALID_CLIENT_SECRET = "secret123";
+import { handleOptions, handlePublicRoute } from "@/lib/api-helpers";
+import {
+  CLIENT_CREDENTIALS,
+  createToken,
+  getTokenTtlMs,
+} from "@/lib/store";
 
 export async function OPTIONS() {
   return handleOptions();
 }
 
 export async function POST(request) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonResponse(
-      { error: "invalid_request", message: "Invalid JSON body" },
-      400
-    );
-  }
+  return handlePublicRoute(request, "/api/oauth/token", async (req) => {
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return {
+        body: { error: "invalid_request", message: "Invalid JSON body" },
+        status: 400,
+      };
+    }
 
-  const { client_id, client_secret, grant_type } = body;
+    const { client_id, client_secret, grant_type } = body;
 
-  if (!grant_type) {
-    return jsonResponse(
-      { error: "invalid_request", message: "grant_type is required" },
-      400
-    );
-  }
+    if (!grant_type) {
+      return {
+        body: { error: "invalid_request", message: "grant_type is required" },
+        status: 400,
+      };
+    }
 
-  if (
-    client_id !== VALID_CLIENT_ID ||
-    client_secret !== VALID_CLIENT_SECRET
-  ) {
-    return jsonResponse(
-      {
-        error: "invalid_client",
-        message: "Invalid client_id or client_secret",
+    const client = CLIENT_CREDENTIALS[client_id];
+    if (!client || client.secret !== client_secret) {
+      return {
+        body: {
+          error: "invalid_client",
+          message: "Invalid client_id or client_secret",
+        },
+        status: 401,
+      };
+    }
+
+    const { token, environment } = createToken(client.environment);
+    const expiresInSeconds = Math.floor(getTokenTtlMs() / 1000);
+
+    return {
+      body: {
+        access_token: token,
+        expires_in: expiresInSeconds,
+        token_type: "Bearer",
+        environment,
       },
-      401
-    );
-  }
-
-  return jsonResponse({
-    access_token: "fake-token-xyz123",
-    expires_in: 2592000,
-    token_type: "Bearer",
+    };
   });
 }

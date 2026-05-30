@@ -4,43 +4,47 @@ import { useEffect, useState } from "react";
 
 const BASE_URL = "https://uber-fake-api.vercel.app";
 
-const CREDENTIALS = `client_id:     uber-partner
-client_secret: secret123
+const SANDBOX_CREDENTIALS = `client_id:     uber-partner-sandbox
+client_secret: sandbox-secret123
 grant_type:    client_credentials
+environment:   sandbox
 base_url:      ${BASE_URL}`;
 
-const QUICK_START = `const response = await fetch('${BASE_URL}/api/oauth/token', {
+const PROD_CREDENTIALS = `client_id:     uber-partner-prod
+client_secret: prod-secret456
+grant_type:    client_credentials
+environment:   production
+base_url:      ${BASE_URL}`;
+
+const LEGACY_CREDENTIALS = `client_id:     uber-partner
+client_secret: secret123
+grant_type:    client_credentials
+(legacy — maps to sandbox)`;
+
+const QUICK_START = `// 1. Get token (expires in 30 seconds)
+const tokenRes = await fetch('${BASE_URL}/api/oauth/token', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    client_id: 'uber-partner',
-    client_secret: 'secret123',
+    client_id: 'uber-partner-sandbox',
+    client_secret: 'sandbox-secret123',
     grant_type: 'client_credentials'
   })
 })
-const { access_token } = await response.json()`;
+const { access_token, environment, expires_in } = await tokenRes.json()
 
-const ENDPOINTS = [
-  {
-    method: "POST",
-    path: "/api/oauth/token",
-    description: "Exchange credentials for Bearer token",
-    request: `{
-  "client_id": "uber-partner",
-  "client_secret": "secret123",
-  "grant_type": "client_credentials"
-}`,
-    response: `{
-  "access_token": "fake-token-xyz123",
-  "expires_in": 2592000,
-  "token_type": "Bearer"
-}`,
-  },
+// 2. Call protected endpoint (max 5 req/min)
+const storesRes = await fetch('${BASE_URL}/api/eats/stores', {
+  headers: { Authorization: \`Bearer \${access_token}\` }
+})
+const { stores } = await storesRes.json()`;
+
+const EATS_ENDPOINTS = [
   {
     method: "GET",
     path: "/api/eats/stores",
-    description: "Get all stores — requires Bearer token",
-    header: "Authorization: Bearer fake-token-xyz123",
+    description: "Get all stores — requires valid Bearer token",
+    header: "Authorization: Bearer {access_token}",
     response: `{
   "stores": [
     { "id": "store_1", "name": "Uber Eats CDMX Centro", "status": "active" },
@@ -52,8 +56,8 @@ const ENDPOINTS = [
   {
     method: "GET",
     path: "/api/eats/stores/:store_id",
-    description: "Get single store — requires Bearer token",
-    header: "Authorization: Bearer fake-token-xyz123",
+    description: "Get single store — requires valid Bearer token",
+    header: "Authorization: Bearer {access_token}",
     response: `{
   "id": "store_1",
   "name": "Uber Eats CDMX Centro",
@@ -65,8 +69,8 @@ const ENDPOINTS = [
   {
     method: "POST",
     path: "/api/eats/stores/:store_id/orders",
-    description: "Create order — requires Bearer token",
-    header: "Authorization: Bearer fake-token-xyz123",
+    description: "Create order — requires valid Bearer token",
+    header: "Authorization: Bearer {access_token}",
     request: `{
   "items": [{ "name": "Burger", "quantity": 2, "price": 150 }],
   "total": 300
@@ -79,6 +83,112 @@ const ENDPOINTS = [
 }`,
   },
 ];
+
+const AUTH_ENDPOINT = {
+  method: "POST",
+  path: "/api/oauth/token",
+  description:
+    "Exchange credentials for Bearer token (unique per request, expires in 30s)",
+  request: `{
+  "client_id": "uber-partner-sandbox",
+  "client_secret": "sandbox-secret123",
+  "grant_type": "client_credentials"
+}`,
+  response: `{
+  "access_token": "fake-token-1712345678901",
+  "expires_in": 30,
+  "token_type": "Bearer",
+  "environment": "sandbox"
+}`,
+  errors: `401 token_expired — Token has expired, please request a new one
+401 unauthorized — Invalid or missing Bearer token
+429 rate_limit_exceeded — Too many requests (retry_after: 60)`,
+};
+
+const ADS_ENDPOINTS = [
+  {
+    method: "POST",
+    path: "/api/ads/campaigns",
+    description: "Create ads campaign — requires Bearer token",
+    header: "Authorization: Bearer {access_token}",
+    request: `{
+  "name": "Summer Promo",
+  "budget": 5000,
+  "advertiserId": "adv_123",
+  "startDate": "2026-06-01",
+  "endDate": "2026-08-31"
+}`,
+    response: `{
+  "campaign_id": "campaign_1712345678901",
+  "name": "Summer Promo",
+  "budget": 5000,
+  "status": "active",
+  "created_at": 1712345678901
+}`,
+  },
+  {
+    method: "GET",
+    path: "/api/ads/campaigns",
+    description: "List all campaigns in memory",
+    header: "Authorization: Bearer {access_token}",
+    response: `{
+  "campaigns": [...],
+  "total": 1
+}`,
+  },
+  {
+    method: "GET",
+    path: "/api/ads/campaigns/:campaign_id",
+    description: "Get single campaign",
+    header: "Authorization: Bearer {access_token}",
+    response: `{ "campaign_id": "campaign_...", "name": "...", ... }`,
+  },
+];
+
+const WEBHOOK_ENDPOINTS = [
+  {
+    method: "POST",
+    path: "/api/webhooks/orders",
+    description: "Receive order webhook from Uber — no auth",
+    request: `{
+  "event": "order.created",
+  "store_id": "store_1",
+  "order_id": "order_xyz",
+  "total": 300
+}`,
+    response: `{
+  "received": true,
+  "event": "order.created"
+}`,
+  },
+  {
+    method: "GET",
+    path: "/api/webhooks/orders",
+    description: "List all webhooks received in memory — no auth",
+    response: `{
+  "webhooks": [...],
+  "total": 1
+}`,
+  },
+];
+
+const LOGS_ENDPOINT = {
+  method: "GET",
+  path: "/api/logs",
+  description: "Last 50 API requests logged in memory — no auth",
+  response: `{
+  "logs": [
+    {
+      "timestamp": 1712345678901,
+      "method": "GET",
+      "endpoint": "/api/eats/stores",
+      "status": 200,
+      "token": "fake-token-1712345678901"
+    }
+  ],
+  "total": 1
+}`,
+};
 
 const card =
   "rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#111111]";
@@ -253,6 +363,16 @@ function MethodBadge({ method }) {
   );
 }
 
+function InfoBanner({ children }) {
+  return (
+    <div
+      className={`mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm ${textSecondary}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 function EndpointCard({ endpoint }) {
   return (
     <article className={`${card} p-5 sm:p-6`}>
@@ -275,7 +395,24 @@ function EndpointCard({ endpoint }) {
       )}
       {endpoint.request && <CodeBlock code={endpoint.request} label="Request body" />}
       <CodeBlock code={endpoint.response} label="Response" />
+      {endpoint.errors && <CodeBlock code={endpoint.errors} label="Error responses" />}
     </article>
+  );
+}
+
+function CredentialsCard({ title, code, copyText }) {
+  return (
+    <div className={`${card}`}>
+      <div
+        className={`flex items-center justify-between border-b px-4 py-3 ${cardBorder}`}
+      >
+        <span className={`font-mono text-xs font-medium ${textAccent}`}>{title}</span>
+        <CopyButton text={copyText} />
+      </div>
+      <pre className={`overflow-x-auto p-4 font-mono text-sm leading-relaxed sm:p-6 ${textCode}`}>
+        <code>{code}</code>
+      </pre>
+    </div>
   );
 }
 
@@ -386,51 +523,108 @@ export default function Home() {
         <p className={`mt-4 max-w-2xl text-base sm:text-lg ${textSecondary}`}>
           Practice OAuth 2.0 integrations against a real API sandbox
         </p>
+        <InfoBanner>
+          <strong className={textPrimary}>Token expiration:</strong> tokens expire in{" "}
+          <span className={textAccent}>30 seconds</span> (simulates 30 days in production).
+          Request a new token when you receive{" "}
+          <code className="font-mono text-xs">token_expired</code>.
+        </InfoBanner>
+        <InfoBanner>
+          <strong className={textPrimary}>Rate limiting:</strong> max{" "}
+          <span className={textAccent}>5 requests per minute</span> per token. Check{" "}
+          <code className="font-mono text-xs">X-RateLimit-Remaining</code> on responses.
+        </InfoBanner>
       </header>
 
       <section className="mt-12 sm:mt-16">
         <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
-          Your Sandbox Credentials
+          Credentials — Sandbox vs Production
         </h2>
         <p className={`mt-1 text-sm ${textSecondary}`}>
-          Use these values in your integration tests
+          Two environments. Token response includes{" "}
+          <code className="font-mono text-xs">environment</code>.
         </p>
-        <div className={`relative mt-5 ${card}`}>
-          <div
-            className={`flex items-center justify-between border-b px-4 py-3 ${cardBorder}`}
-          >
-            <span className={`font-mono text-xs ${textMuted}`}>credentials</span>
-            <CopyButton text={CREDENTIALS} />
-          </div>
-          <pre className={`overflow-x-auto p-4 font-mono text-sm leading-relaxed sm:p-6 ${textCode}`}>
-            <code>
-              <span className={textKey}>client_id:</span>{" "}
-              <span className={textAccent}>uber-partner</span>
-              {"\n"}
-              <span className={textKey}>client_secret:</span>{" "}
-              <span className={textAccent}>secret123</span>
-              {"\n"}
-              <span className={textKey}>grant_type:</span>{" "}
-              <span className={textAccent}>client_credentials</span>
-              {"\n"}
-              <span className={textKey}>base_url:</span>{" "}
-              <span className={textAccent}>{BASE_URL}</span>
-            </code>
-          </pre>
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <CredentialsCard
+            title="Sandbox"
+            code={SANDBOX_CREDENTIALS}
+            copyText={SANDBOX_CREDENTIALS}
+          />
+          <CredentialsCard
+            title="Production"
+            code={PROD_CREDENTIALS}
+            copyText={PROD_CREDENTIALS}
+          />
+        </div>
+        <div className="mt-4">
+          <CredentialsCard
+            title="Legacy (still supported)"
+            code={LEGACY_CREDENTIALS}
+            copyText={LEGACY_CREDENTIALS}
+          />
         </div>
       </section>
 
       <section className="mt-12 sm:mt-16">
         <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
-          API Endpoints
+          OAuth
+        </h2>
+        <div className="mt-6">
+          <EndpointCard endpoint={AUTH_ENDPOINT} />
+        </div>
+      </section>
+
+      <section className="mt-12 sm:mt-16">
+        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
+          Uber Eats
         </h2>
         <p className={`mt-1 text-sm ${textSecondary}`}>
-          Four routes — OAuth token, stores, store detail, and orders
+          Stores and orders — protected endpoints
         </p>
         <div className="mt-6 grid gap-5 lg:grid-cols-2 lg:gap-6">
-          {ENDPOINTS.map((endpoint) => (
+          {EATS_ENDPOINTS.map((endpoint) => (
             <EndpointCard key={endpoint.path} endpoint={endpoint} />
           ))}
+        </div>
+      </section>
+
+      <section className="mt-12 sm:mt-16">
+        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
+          Ads Campaigns
+        </h2>
+        <p className={`mt-1 text-sm ${textSecondary}`}>
+          Create and list campaigns (in-memory). Minimum budget: 1000.
+        </p>
+        <div className="mt-6 grid gap-5 lg:grid-cols-2 lg:gap-6">
+          {ADS_ENDPOINTS.map((endpoint) => (
+            <EndpointCard key={endpoint.path} endpoint={endpoint} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-12 sm:mt-16">
+        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
+          Webhooks
+        </h2>
+        <p className={`mt-1 text-sm ${textSecondary}`}>
+          Simulated Uber server callbacks — no authentication
+        </p>
+        <div className="mt-6 grid gap-5 lg:grid-cols-2 lg:gap-6">
+          {WEBHOOK_ENDPOINTS.map((endpoint) => (
+            <EndpointCard key={endpoint.path} endpoint={endpoint} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-12 sm:mt-16">
+        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
+          Request Logs
+        </h2>
+        <p className={`mt-1 text-sm ${textSecondary}`}>
+          Every API call is logged in memory
+        </p>
+        <div className="mt-6">
+          <EndpointCard endpoint={LOGS_ENDPOINT} />
         </div>
       </section>
 
