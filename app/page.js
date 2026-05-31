@@ -1,6 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  card,
+  cardBorder,
+  CopyButton,
+  CredentialsCard,
+  DocsFooter,
+  DocsNav,
+  EndpointCard,
+  InfoBanner,
+  textAccent,
+  textCode,
+  textMuted,
+  textPrimary,
+  textSecondary,
+} from "@/app/components/docs-ui";
 
 const BASE_URL = "https://uber-fake-api.vercel.app";
 
@@ -190,388 +205,6 @@ const LOGS_ENDPOINT = {
 }`,
 };
 
-const card =
-  "rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#111111]";
-const cardBorder = "border-zinc-200 dark:border-zinc-800";
-const codeSurface = "bg-zinc-100 dark:bg-[#0a0a0a]";
-
-/* Texto: claro = oscuro legible, oscuro = claro legible */
-const textPrimary = "text-zinc-900 dark:text-zinc-50";
-const textSecondary = "text-zinc-600 dark:text-zinc-400";
-const textMuted = "text-zinc-500 dark:text-zinc-500";
-const textLabel = "text-zinc-600 dark:text-zinc-500";
-const textCode = "text-zinc-800 dark:text-zinc-300";
-const textAccent = "text-cyan-700 dark:text-cyan-400";
-const textKey = "text-zinc-600 dark:text-zinc-500";
-
-function applyTheme(theme) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  localStorage.setItem("theme", theme);
-}
-
-function ThemeToggle() {
-  const [theme, setTheme] = useState("dark");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial =
-      stored === "light" || stored === "dark"
-        ? stored
-        : prefersDark
-          ? "dark"
-          : "light";
-    setTheme(initial);
-    setMounted(true);
-  }, []);
-
-  function toggle() {
-    const next = theme === "dark" ? "light" : "dark";
-    applyTheme(next);
-    setTheme(next);
-  }
-
-  if (!mounted) {
-    return (
-      <div
-        className={`h-9 w-[7.5rem] rounded-lg border ${cardBorder} bg-zinc-100 dark:bg-zinc-900`}
-        aria-hidden
-      />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
-      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${cardBorder} bg-zinc-100 text-zinc-700 hover:border-cyan-500/50 hover:text-cyan-600 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-cyan-400`}
-    >
-      {theme === "dark" ? (
-        <>
-          <SunIcon />
-          <span>Claro</span>
-        </>
-      ) : (
-        <>
-          <MoonIcon />
-          <span>Oscuro</span>
-        </>
-      )}
-    </button>
-  );
-}
-
-function SunIcon() {
-  return (
-    <svg
-      className="h-4 w-4 text-cyan-600 dark:text-cyan-400"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-      />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg
-      className="h-4 w-4 text-cyan-600 dark:text-cyan-400"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-      />
-    </svg>
-  );
-}
-
-function CopyButton({ text }) {
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className={`shrink-0 rounded-md border px-2.5 py-1 text-xs transition-colors ${cardBorder} bg-zinc-50 text-zinc-600 hover:border-cyan-500/50 hover:text-cyan-600 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-cyan-400`}
-    >
-      {copied ? "Copiado" : "Copiar"}
-    </button>
-  );
-}
-
-function CodeBlock({ code, label }) {
-  return (
-    <div className="mt-3">
-      {label && (
-        <p
-          className={`mb-1.5 text-xs font-medium uppercase tracking-wider ${textLabel}`}
-        >
-          {label}
-        </p>
-      )}
-      <div className={`relative rounded-lg border ${cardBorder} ${codeSurface}`}>
-        <div
-          className={`flex items-center justify-between border-b px-3 py-2 ${cardBorder}`}
-        >
-          <span className={`font-mono text-xs ${textMuted}`}>json</span>
-          <CopyButton text={code} />
-        </div>
-        <pre
-          className={`overflow-x-auto p-4 font-mono text-xs leading-relaxed sm:text-sm ${textCode}`}
-        >
-          <code>{code}</code>
-        </pre>
-      </div>
-    </div>
-  );
-}
-
-const MAPISTRY_BASE = `${BASE_URL}/api/mapistry`;
-
-const MAPISTRY_CREDENTIALS = `x-api-key:  test-api-key-mapistry-123
-base_url:   ${MAPISTRY_BASE}`;
-
-const MAPISTRY_QUICK_START = `const response = await fetch('${MAPISTRY_BASE}/sites', {
-  headers: {
-    'x-api-key': 'test-api-key-mapistry-123'
-  }
-})
-const data = await response.json()
-console.log(data.data)`;
-
-const MAPISTRY_ENDPOINTS = [
-  {
-    method: "GET",
-    path: "/api/mapistry/ping",
-    description: "Health check — no authentication",
-    response: `{ "message": "pong", "timestamp": 1712345678901 }`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/sites",
-    description: "List SRM Concrete sites — paginated (page[size], page[after])",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{
-  "data": [{ "id": "site_1", "name": "SRM Concrete - CDMX Plant 1", ... }],
-  "meta": { "page": { "nextCursor": null, "totalCount": 10 } }
-}`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/sites/:siteId",
-    description: "Get single site",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{ "id": "site_1", "name": "SRM Concrete - CDMX Plant 1", "state": "Mexico City", ... }`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/sites/:siteId/tags",
-    description: "Site tags (Region, Type)",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{
-  "data": [
-    { "label": "Region", "value": "North America", "siteId": "site_1" },
-    { "label": "Type", "value": "Concrete Plant", "siteId": "site_1" }
-  ]
-}`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/sites/:siteId/users",
-    description: "Site users",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{
-  "data": [
-    { "id": "user_1", "name": "John Inspector", "email": "john@srm.com", "jobTitle": "Environmental Inspector" }
-  ]
-}`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/edp/sites/:siteId/logs",
-    description: "Environmental compliance logs for a site (5 per site)",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{
-  "data": [{ "id": "log_1_1", "siteId": "site_1", "name": "Daily Emissions Log", "fields": [...] }],
-  "meta": { "page": { "nextCursor": null, "totalCount": 5 } }
-}`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/edp/sites/:siteId/logs/:logId",
-    description: "Single log with field definitions",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{ "id": "log_1_1", "name": "Daily Emissions Log", "category": "emissions", "fields": [...] }`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/edp/sites/:siteId/logs/:logId/entries",
-    description: "Log entries — paginated (20 per log)",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{
-  "data": [{ "id": "entry_1_1_1", "logDate": "2025-01-01T08:00", "fieldValues": {...} }],
-  "meta": { "page": { "nextCursor": "10", "totalCount": 20 } }
-}`,
-  },
-  {
-    method: "POST",
-    path: "/api/mapistry/edp/sites/:siteId/logs/:logId/entries",
-    description: "Create log entry",
-    header: "x-api-key: test-api-key-mapistry-123",
-    request: `{
-  "logDate": "2025-01-01T08:00",
-  "isComplete": true,
-  "fieldValues": {
-    "field_1": { "value": 450, "units": "kg" },
-    "field_2": { "value": "2025-01-01" }
-  }
-}`,
-    response: `{
-  "id": "entry_1712345678901",
-  "siteId": "site_1",
-  "logId": "log_1_1",
-  "logDate": "2025-01-01T08:00",
-  "isComplete": true,
-  "fieldValues": { ... },
-  "createdAt": "2025-01-01T08:00:00.000Z"
-}`,
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/edp/sites/:siteId/logs/:logId/entries/:entryId",
-    description: "Get single log entry",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{ "id": "entry_1_1_1", "siteId": "site_1", "fieldValues": { ... } }`,
-  },
-  {
-    method: "DELETE",
-    path: "/api/mapistry/edp/sites/:siteId/logs/:logId/entries/:entryId",
-    description: "Delete log entry — returns 204 No Content",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: "(empty body, status 204)",
-  },
-  {
-    method: "GET",
-    path: "/api/mapistry/edp/related-units",
-    description: "Measurement units (kg, L, ppm, etc.)",
-    header: "x-api-key: test-api-key-mapistry-123",
-    response: `{
-  "data": [
-    { "id": "kg", "name": "Kilograms" },
-    { "id": "ppm", "name": "Parts Per Million" }
-  ]
-}`,
-  },
-];
-
-function MethodBadge({ method }) {
-  const colors =
-    method === "GET"
-      ? "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800/80 dark:text-zinc-300"
-      : method === "DELETE"
-        ? "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400"
-        : "border-cyan-500/40 bg-cyan-500/10 text-cyan-700 dark:text-[#06B6D4]";
-
-  return (
-    <span
-      className={`rounded border px-2 py-0.5 font-mono text-xs font-semibold ${colors}`}
-    >
-      {method}
-    </span>
-  );
-}
-
-function InfoBanner({ children }) {
-  return (
-    <div
-      className={`mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm ${textSecondary}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function EndpointCard({ endpoint }) {
-  return (
-    <article className={`${card} p-5 sm:p-6`}>
-      <div className="flex flex-wrap items-center gap-3">
-        <MethodBadge method={endpoint.method} />
-        <code className={`font-mono text-sm sm:text-base ${textPrimary}`}>
-          {endpoint.path}
-        </code>
-      </div>
-      <p className={`mt-3 text-sm ${textSecondary}`}>{endpoint.description}</p>
-      {endpoint.header && (
-        <div
-          className={`mt-3 rounded-lg border px-3 py-2 ${cardBorder} ${codeSurface}`}
-        >
-          <p className={`text-xs ${textLabel}`}>
-            Header:{" "}
-            <span className={`font-mono ${textAccent}`}>{endpoint.header}</span>
-          </p>
-        </div>
-      )}
-      {endpoint.request && <CodeBlock code={endpoint.request} label="Request body" />}
-      <CodeBlock code={endpoint.response} label="Response" />
-      {endpoint.errors && <CodeBlock code={endpoint.errors} label="Error responses" />}
-    </article>
-  );
-}
-
-function CredentialsCard({ title, code, copyText }) {
-  return (
-    <div className={`${card}`}>
-      <div
-        className={`flex items-center justify-between border-b px-4 py-3 ${cardBorder}`}
-      >
-        <span className={`font-mono text-xs font-medium ${textAccent}`}>{title}</span>
-        <CopyButton text={copyText} />
-      </div>
-      <pre className={`overflow-x-auto p-4 font-mono text-sm leading-relaxed sm:p-6 ${textCode}`}>
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
-}
-
-function MapistryQuickStartCode() {
-  return (
-    <div className={`relative ${card}`}>
-      <div
-        className={`flex items-center justify-between border-b px-4 py-3 ${cardBorder}`}
-      >
-        <span className={`font-mono text-xs ${textMuted}`}>javascript</span>
-        <CopyButton text={MAPISTRY_QUICK_START} />
-      </div>
-      <pre className={`overflow-x-auto p-4 font-mono text-xs leading-relaxed sm:p-6 sm:text-sm ${textCode}`}>
-        <code>{MAPISTRY_QUICK_START}</code>
-      </pre>
-    </div>
-  );
-}
-
 function QuickStartCode() {
   return (
     <div className={`relative ${card}`}>
@@ -581,80 +214,10 @@ function QuickStartCode() {
         <span className={`font-mono text-xs ${textMuted}`}>javascript</span>
         <CopyButton text={QUICK_START} />
       </div>
-      <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed sm:p-6 sm:text-sm">
-        <code>
-          <span className="text-violet-700 dark:text-zinc-500">const</span>{" "}
-          <span className="text-zinc-800 dark:text-zinc-300">response</span>{" "}
-          <span className="text-violet-700 dark:text-zinc-500">=</span>{" "}
-          <span className="text-violet-700 dark:text-zinc-500">await</span>{" "}
-          <span className="text-cyan-700 dark:text-cyan-400">fetch</span>
-          <span className="text-zinc-600 dark:text-zinc-400">(</span>
-          <span className="text-amber-800 dark:text-amber-200/90">
-            &apos;{BASE_URL}/api/oauth/token&apos;
-          </span>
-          <span className="text-zinc-600 dark:text-zinc-400">, {"{"}</span>
-          {"\n"}
-          {"  "}
-          <span className="text-zinc-800 dark:text-zinc-300">method</span>
-          <span className="text-violet-700 dark:text-zinc-500">:</span>{" "}
-          <span className="text-amber-800 dark:text-amber-200/90">&apos;POST&apos;</span>
-          <span className="text-violet-700 dark:text-zinc-500">,</span>
-          {"\n"}
-          {"  "}
-          <span className="text-zinc-800 dark:text-zinc-300">headers</span>
-          <span className="text-violet-700 dark:text-zinc-500">: {"{"} </span>
-          <span className="text-amber-800 dark:text-amber-200/90">
-            &apos;Content-Type&apos;
-          </span>
-          <span className="text-violet-700 dark:text-zinc-500">:</span>{" "}
-          <span className="text-amber-800 dark:text-amber-200/90">
-            &apos;application/json&apos;
-          </span>
-          <span className="text-violet-700 dark:text-zinc-500"> {"}"},</span>
-          {"\n"}
-          {"  "}
-          <span className="text-zinc-800 dark:text-zinc-300">body</span>
-          <span className="text-violet-700 dark:text-zinc-500">:</span>{" "}
-          <span className="text-cyan-700 dark:text-cyan-400">JSON.stringify</span>
-          <span className="text-zinc-600 dark:text-zinc-400">({"{"}</span>
-          {"\n"}
-          {"    "}
-          <span className="text-zinc-800 dark:text-zinc-300">client_id</span>
-          <span className="text-violet-700 dark:text-zinc-500">:</span>{" "}
-          <span className="text-amber-800 dark:text-amber-200/90">
-            &apos;uber-partner&apos;
-          </span>
-          <span className="text-violet-700 dark:text-zinc-500">,</span>
-          {"\n"}
-          {"    "}
-          <span className="text-zinc-800 dark:text-zinc-300">client_secret</span>
-          <span className="text-violet-700 dark:text-zinc-500">:</span>{" "}
-          <span className="text-amber-800 dark:text-amber-200/90">
-            &apos;secret123&apos;
-          </span>
-          <span className="text-violet-700 dark:text-zinc-500">,</span>
-          {"\n"}
-          {"    "}
-          <span className="text-zinc-800 dark:text-zinc-300">grant_type</span>
-          <span className="text-violet-700 dark:text-zinc-500">:</span>{" "}
-          <span className="text-amber-800 dark:text-amber-200/90">
-            &apos;client_credentials&apos;
-          </span>
-          {"\n"}
-          {"  "}
-          <span className="text-zinc-600 dark:text-zinc-400">{"})"}</span>
-          {"\n"}
-          <span className="text-zinc-600 dark:text-zinc-400">{"})"}</span>
-          {"\n"}
-          <span className="text-violet-700 dark:text-zinc-500">const</span>{" "}
-          <span className="text-zinc-600 dark:text-zinc-400">{"{ access_token }"}</span>{" "}
-          <span className="text-violet-700 dark:text-zinc-500">=</span>{" "}
-          <span className="text-violet-700 dark:text-zinc-500">await</span>{" "}
-          <span className="text-zinc-800 dark:text-zinc-300">response</span>
-          <span className="text-zinc-600 dark:text-zinc-400">.</span>
-          <span className="text-cyan-700 dark:text-cyan-400">json</span>
-          <span className="text-zinc-600 dark:text-zinc-400">()</span>
-        </code>
+      <pre
+        className={`overflow-x-auto p-4 font-mono text-xs leading-relaxed sm:p-6 sm:text-sm ${textCode}`}
+      >
+        <code>{QUICK_START}</code>
       </pre>
     </div>
   );
@@ -663,9 +226,7 @@ function QuickStartCode() {
 export default function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-12 transition-colors sm:px-6 sm:py-16 lg:py-20">
-      <div className="mb-8 flex justify-end">
-        <ThemeToggle />
-      </div>
+      <DocsNav active="uber" />
 
       <header className={`border-b pb-12 sm:pb-16 ${cardBorder}`}>
         <p className={`mb-3 font-mono text-xs uppercase tracking-widest ${textAccent}`}>
@@ -691,6 +252,23 @@ export default function Home() {
           <code className="font-mono text-xs">X-RateLimit-Remaining</code> on responses.
         </InfoBanner>
       </header>
+
+      <section className="mt-8">
+        <Link
+          href="/mapistry"
+          className={`block rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 transition-colors hover:border-emerald-500/50 sm:p-6`}
+        >
+          <p className="font-mono text-xs uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+            Also available
+          </p>
+          <p className={`mt-2 text-lg font-semibold ${textPrimary}`}>
+            Mapistry Environmental API →
+          </p>
+          <p className={`mt-1 text-sm ${textSecondary}`}>
+            API Key auth, SRM Concrete sites, compliance logs & entries
+          </p>
+        </Link>
+      </section>
 
       <section className="mt-12 sm:mt-16">
         <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
@@ -722,9 +300,7 @@ export default function Home() {
       </section>
 
       <section className="mt-12 sm:mt-16">
-        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
-          OAuth
-        </h2>
+        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>OAuth</h2>
         <div className="mt-6">
           <EndpointCard endpoint={AUTH_ENDPOINT} />
         </div>
@@ -786,7 +362,7 @@ export default function Home() {
 
       <section className="mt-12 sm:mt-16">
         <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
-          Uber Eats — Quick Start
+          Quick Start
         </h2>
         <p className={`mt-1 text-sm ${textSecondary}`}>
           Fetch an access token in a few lines of JavaScript
@@ -796,78 +372,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className={`my-20 border-t ${cardBorder}`} />
-
-      <header className={`border-b pb-12 sm:pb-16 ${cardBorder}`}>
-        <p className={`mb-3 font-mono text-xs uppercase tracking-widest text-emerald-600 dark:text-emerald-400`}>
-          Environmental API
-        </p>
-        <h2
-          className={`text-3xl font-semibold tracking-tight sm:text-4xl ${textPrimary}`}
-        >
-          Mapistry Environmental API
-        </h2>
-        <p className={`mt-4 max-w-2xl text-base sm:text-lg ${textSecondary}`}>
-          Practice API Key authentication and environmental data integrations
-        </p>
-        <InfoBanner>
-          <strong className={textPrimary}>Authentication:</strong> use header{" "}
-          <code className="font-mono text-xs">x-api-key</code>, not Bearer tokens.
-        </InfoBanner>
-        <InfoBanner>
-          <strong className={textPrimary}>Rate limiting:</strong> max{" "}
-          <span className="text-emerald-600 dark:text-emerald-400">100 requests per minute</span>{" "}
-          per API key. Check <code className="font-mono text-xs">X-RateLimit-Remaining</code>.
-        </InfoBanner>
-        <InfoBanner>
-          <strong className={textPrimary}>Seed data:</strong> 10 SRM Concrete sites, 5 logs per site, 20 entries per log (in memory).
-        </InfoBanner>
-      </header>
-
-      <section className="mt-12 sm:mt-16">
-        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
-          Mapistry Credentials
-        </h2>
-        <div className="mt-5">
-          <CredentialsCard
-            title="API Key"
-            code={MAPISTRY_CREDENTIALS}
-            copyText={MAPISTRY_CREDENTIALS}
-          />
-        </div>
-      </section>
-
-      <section className="mt-12 sm:mt-16">
-        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
-          Mapistry Endpoints
-        </h2>
-        <p className={`mt-1 text-sm ${textSecondary}`}>
-          Sites, environmental logs, entries, and related units
-        </p>
-        <div className="mt-6 grid gap-5 lg:grid-cols-2 lg:gap-6">
-          {MAPISTRY_ENDPOINTS.map((endpoint) => (
-            <EndpointCard key={endpoint.path} endpoint={endpoint} />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-12 sm:mt-16">
-        <h2 className={`text-lg font-semibold sm:text-xl ${textPrimary}`}>
-          Mapistry — Quick Start
-        </h2>
-        <p className={`mt-1 text-sm ${textSecondary}`}>
-          List sites with your API key
-        </p>
-        <div className="mt-5">
-          <MapistryQuickStartCode />
-        </div>
-      </section>
-
-      <footer
-        className={`mt-16 border-t pt-8 text-center text-xs text-zinc-500 dark:text-zinc-600 ${cardBorder}`}
-      >
-        Integration API Sandbox — Uber Eats & Mapistry simulations for practice only.
-      </footer>
+      <DocsFooter text="Uber Fake API — for integration practice only. Not affiliated with Uber." />
     </main>
   );
 }
