@@ -1,12 +1,12 @@
 import { handleOptions, handleProtectedRoute } from "@/lib/api-helpers";
-import { getStoreSummaries } from "@/lib/store";
+import { getStoreStats } from "@/lib/store";
 
 export async function OPTIONS() {
   return handleOptions();
 }
 
 export async function GET(request) {
-  return handleProtectedRoute(request, "/api/eats/stores", async () => ({
-    body: { stores: getStoreSummaries() },
+  return handleProtectedRoute(request, "/api/eats/stores/stats", async () => ({
+    body: getStoreStats(),
   }));
 }

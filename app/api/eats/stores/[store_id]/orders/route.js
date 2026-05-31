@@ -1,6 +1,5 @@
 import { handleOptions, handleProtectedRoute } from "@/lib/api-helpers";
-
-const VALID_STORE_IDS = ["store_1", "store_2", "store_3"];
+import { createOrder, getStoreById, isValidStoreId } from "@/lib/store";
 
 export async function OPTIONS() {
   return handleOptions();
@@ -11,7 +10,7 @@ export async function POST(request, { params }) {
     request,
     `/api/eats/stores/${params.store_id}/orders`,
     async (req) => {
-      if (!VALID_STORE_IDS.includes(params.store_id)) {
+      if (!isValidStoreId(params.store_id)) {
         return {
           body: {
             error: "not_found",
@@ -31,14 +30,22 @@ export async function POST(request, { params }) {
         };
       }
 
+      const items = body.items || [];
       const total = body.total ?? 300;
+
+      const order = createOrder({
+        store_id: params.store_id,
+        items,
+        total,
+        status: "received",
+      });
 
       return {
         body: {
-          order_id: "order_xyz789",
-          status: "received",
-          store_id: params.store_id,
-          total,
+          order_id: order.order_id,
+          status: order.status,
+          store_id: order.store_id,
+          total: order.total,
         },
         status: 201,
       };

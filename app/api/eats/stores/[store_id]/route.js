@@ -1,28 +1,5 @@
 import { handleOptions, handleProtectedRoute } from "@/lib/api-helpers";
-
-const STORE_DETAILS = {
-  store_1: {
-    id: "store_1",
-    name: "Uber Eats CDMX Centro",
-    status: "active",
-    address: "Av. Juárez 123, CDMX",
-    rating: 4.8,
-  },
-  store_2: {
-    id: "store_2",
-    name: "Uber Eats Polanco",
-    status: "active",
-    address: "Av. Presidente Masaryk 200, CDMX",
-    rating: 4.6,
-  },
-  store_3: {
-    id: "store_3",
-    name: "Uber Eats Condesa",
-    status: "inactive",
-    address: "Av. Tamaulipas 45, CDMX",
-    rating: 4.5,
-  },
-};
+import { getStoreById } from "@/lib/store";
 
 export async function OPTIONS() {
   return handleOptions();
@@ -33,7 +10,7 @@ export async function GET(request, { params }) {
     request,
     `/api/eats/stores/${params.store_id}`,
     async () => {
-      const store = STORE_DETAILS[params.store_id];
+      const store = getStoreById(params.store_id);
       if (!store) {
         return {
           body: {
