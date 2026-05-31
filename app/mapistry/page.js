@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   card,
   cardBorder,
@@ -193,6 +194,20 @@ export default function MapistryPage() {
         <p className={`mt-4 max-w-2xl text-base sm:text-lg ${textSecondary}`}>
           Practice API Key authentication and environmental data integrations
         </p>
+        <div className="mt-6 flex flex-wrap items-center gap-6">
+          <Link
+            href="/mapistry/app"
+            className="text-lg font-semibold text-emerald-600 underline-offset-4 hover:text-emerald-500 hover:underline dark:text-emerald-400"
+          >
+            App
+          </Link>
+          <Link
+            href="/mapistry/alerts"
+            className="text-lg font-semibold text-emerald-600 underline-offset-4 hover:text-emerald-500 hover:underline dark:text-emerald-400"
+          >
+            Alerts
+          </Link>
+        </div>
         <InfoBanner>
           <strong className={textPrimary}>Authentication:</strong> use header{" "}
           <code className="font-mono text-xs">x-api-key</code>, not Bearer tokens.

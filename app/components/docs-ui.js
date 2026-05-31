@@ -65,9 +65,12 @@ export function ThemeToggle() {
 }
 
 export function DocsNav({ active }) {
+  const isMapistry =
+    active === "mapistry" || active === "app" || active === "alerts";
+
   const linkClass = (name) =>
     name === active
-      ? `font-medium ${name === "mapistry" ? textAccentEmerald : textAccent}`
+      ? `font-medium ${isMapistry && name !== "uber" ? textAccentEmerald : textAccent}`
       : `${textSecondary} hover:text-zinc-900 dark:hover:text-zinc-50`;
 
   return (
@@ -79,6 +82,14 @@ export function DocsNav({ active }) {
         <span className={textMuted}>|</span>
         <Link href="/mapistry" className={linkClass("mapistry")}>
           Mapistry API
+        </Link>
+        <span className={textMuted}>|</span>
+        <Link href="/mapistry/app" className={linkClass("app")}>
+          App
+        </Link>
+        <span className={textMuted}>|</span>
+        <Link href="/mapistry/alerts" className={linkClass("alerts")}>
+          Alerts
         </Link>
       </nav>
       <ThemeToggle />
