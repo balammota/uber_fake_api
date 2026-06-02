@@ -13,13 +13,13 @@ export async function GET(request, { params }) {
     request,
     `/api/mapistry/sites/${params.siteId}/tags`,
     async () => {
-      if (!getSite(params.siteId)) {
+      if (!(await getSite(params.siteId))) {
         return {
           body: { error: "not_found", message: "Site not found" },
           status: 404,
         };
       }
-      const tags = getSiteTagsForSite(params.siteId);
+      const tags = await getSiteTagsForSite(params.siteId);
       return { body: { data: tags } };
     }
   );

@@ -10,7 +10,7 @@ export async function OPTIONS() {
 
 export async function GET(request) {
   return handleMapistryPublicRoute(request, "/api/mapistry/logs", async () => {
-    const logs = getMapistryRequestLogs(50);
+    const logs = await getMapistryRequestLogs(50);
     return {
       body: {
         logs,

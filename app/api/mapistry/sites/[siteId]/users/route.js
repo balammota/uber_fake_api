@@ -13,7 +13,7 @@ export async function GET(request, { params }) {
     request,
     `/api/mapistry/sites/${params.siteId}/users`,
     async () => {
-      const users = getSiteUsersForSite(params.siteId);
+      const users = await getSiteUsersForSite(params.siteId);
       if (!users) {
         return {
           body: { error: "not_found", message: "Site not found" },

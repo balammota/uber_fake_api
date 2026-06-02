@@ -10,6 +10,6 @@ export async function OPTIONS() {
 
 export async function GET(request) {
   return handleMapistryProtectedRoute(request, "/api/mapistry/sites/stats", async () => ({
-    body: getSiteStats(),
+    body: await getSiteStats(),
   }));
 }

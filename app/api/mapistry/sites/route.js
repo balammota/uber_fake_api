@@ -11,7 +11,7 @@ export async function OPTIONS() {
 
 export async function GET(request) {
   return handleMapistryProtectedRoute(request, "/api/mapistry/sites", async (req) => {
-    const sites = getAllSites();
+    const sites = await getAllSites();
     const result = paginate(sites, req, 10);
     return { body: result };
   });

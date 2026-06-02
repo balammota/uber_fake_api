@@ -80,16 +80,16 @@ export function DocsNav({ active }) {
           Uber Eats API
         </Link>
         <span className={textMuted}>|</span>
-        <Link href="/mapistry" className={linkClass("mapistry")}>
+        <Link href="/mapistry/docs" className={linkClass("mapistry")}>
           Mapistry API
         </Link>
         <span className={textMuted}>|</span>
-        <Link href="/mapistry/app" className={linkClass("app")}>
-          App
+        <Link href="/mapistry/dashboard" className={linkClass("app")}>
+          Dashboard
         </Link>
         <span className={textMuted}>|</span>
-        <Link href="/mapistry/alerts" className={linkClass("alerts")}>
-          Alerts
+        <Link href="/mapistry/srm" className={linkClass("alerts")}>
+          SRM Generator
         </Link>
       </nav>
       <ThemeToggle />

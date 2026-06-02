@@ -13,13 +13,13 @@ export async function GET(request, { params }) {
     request,
     `/api/mapistry/edp/sites/${params.siteId}/logs/${params.logId}`,
     async () => {
-      if (!getSite(params.siteId)) {
+      if (!(await getSite(params.siteId))) {
         return {
           body: { error: "not_found", message: "Site not found" },
           status: 404,
         };
       }
-      const log = getLog(params.siteId, params.logId);
+      const log = await getLog(params.siteId, params.logId);
       if (!log) {
         return {
           body: { error: "not_found", message: "Log not found" },

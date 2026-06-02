@@ -254,20 +254,24 @@ export default function Home() {
       </header>
 
       <section className="mt-8">
-        <Link
-          href="/mapistry"
-          className={`block rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 transition-colors hover:border-emerald-500/50 sm:p-6`}
-        >
-          <p className="font-mono text-xs uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+        <div className="overflow-hidden rounded-xl bg-[#2D7A4F] p-6 text-white shadow-md sm:p-8">
+          <p className="font-mono text-xs uppercase tracking-widest text-white/80">
             Also available
           </p>
-          <p className={`mt-2 text-lg font-semibold ${textPrimary}`}>
-            Mapistry Environmental API →
+          <p className="mt-2 text-2xl font-bold tracking-tight text-white">Mapistry</p>
+          <p className="mt-1 text-sm text-white/90">
+            Environmental Compliance Platform
           </p>
-          <p className={`mt-1 text-sm ${textSecondary}`}>
-            API Key auth, SRM Concrete sites, compliance logs & entries
+          <p className="mt-3 max-w-lg text-sm text-white/80">
+            API Key auth, SRM Concrete sites, compliance logs &amp; entries
           </p>
-        </Link>
+          <Link
+            href="/mapistry/docs"
+            className="mt-5 inline-flex items-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#2D7A4F] transition-colors hover:bg-[#E8F5EE]"
+          >
+            Enter Platform →
+          </Link>
+        </div>
       </section>
 
       <section className="mt-12 sm:mt-16">
