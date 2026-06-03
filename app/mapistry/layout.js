@@ -3,6 +3,11 @@ import MapistryNav from "@/components/MapistryNav";
 export const metadata = {
   title: "Mapistry",
   description: "Environmental compliance platform — API sandbox",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false },
+  },
 };
 
 export default function MapistryLayout({ children }) {

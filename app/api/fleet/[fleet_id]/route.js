@@ -8,19 +8,19 @@ export async function OPTIONS() {
 export async function GET(request, { params }) {
   return handleProtectedRoute(
     request,
-    `/api/eats/stores/${params.store_id}`,
+    `/api/fleet/${params.fleet_id}`,
     async () => {
-      const store = getStoreById(params.store_id);
-      if (!store) {
+      const member = getStoreById(params.fleet_id);
+      if (!member) {
         return {
           body: {
             error: "not_found",
-            message: `Store ${params.store_id} not found`,
+            message: `Fleet member ${params.fleet_id} not found`,
           },
           status: 404,
         };
       }
-      return { body: store };
+      return { body: member };
     }
   );
 }

@@ -1,98 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { highlightCode } from "@/lib/prism-highlight";
 
-export const card =
-  "rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#111111]";
-export const cardBorder = "border-zinc-200 dark:border-zinc-800";
-export const codeSurface = "bg-zinc-100 dark:bg-[#0a0a0a]";
-export const textPrimary = "text-zinc-900 dark:text-zinc-50";
-export const textSecondary = "text-zinc-600 dark:text-zinc-400";
-export const textMuted = "text-zinc-500 dark:text-zinc-500";
-export const textLabel = "text-zinc-600 dark:text-zinc-500";
-export const textCode = "text-zinc-800 dark:text-zinc-300";
-export const textAccent = "text-cyan-700 dark:text-cyan-400";
-export const textAccentEmerald = "text-emerald-700 dark:text-emerald-400";
+/* Uber docs — strict black & white */
+export const uberHeading = "text-3xl font-bold tracking-tight text-black sm:text-4xl";
+export const uberSubheading = "text-2xl font-bold tracking-tight text-black sm:text-3xl";
+export const uberBody = "text-base leading-relaxed text-black sm:text-lg";
+export const uberSerifTitle = "font-serif text-3xl font-bold text-black sm:text-4xl";
+export const uberHeroHeading =
+  "text-4xl font-bold tracking-tight text-black sm:text-5xl lg:text-[3.25rem]";
+export const uberHeroSubtitle = "mt-5 max-w-3xl text-lg leading-relaxed text-black sm:text-xl";
 
-function applyTheme(theme) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
-  localStorage.setItem("theme", theme);
+export function UberDivider() {
+  return <hr className="my-14 border-0 bg-black sm:my-16" style={{ height: "18px" }} />;
 }
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState("dark");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial =
-      stored === "light" || stored === "dark"
-        ? stored
-        : prefersDark
-          ? "dark"
-          : "light";
-    setTheme(initial);
-    setMounted(true);
-  }, []);
-
-  function toggle() {
-    const next = theme === "dark" ? "light" : "dark";
-    applyTheme(next);
-    setTheme(next);
-  }
-
-  if (!mounted) {
-    return (
-      <div
-        className={`h-9 w-[7.5rem] rounded-lg border ${cardBorder} bg-zinc-100 dark:bg-zinc-900`}
-        aria-hidden
-      />
-    );
-  }
-
+export function UberFeature({ title, children }) {
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
-      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${cardBorder} bg-zinc-100 text-zinc-700 hover:border-cyan-500/50 hover:text-cyan-600 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-cyan-400`}
-    >
-      {theme === "dark" ? "Claro" : "Oscuro"}
-    </button>
+    <p className={uberBody}>
+      <strong className="font-bold">{title}</strong> {children}
+    </p>
   );
 }
 
-export function DocsNav({ active }) {
-  const isMapistry =
-    active === "mapistry" || active === "app" || active === "alerts";
-
-  const linkClass = (name) =>
-    name === active
-      ? `font-medium ${isMapistry && name !== "uber" ? textAccentEmerald : textAccent}`
-      : `${textSecondary} hover:text-zinc-900 dark:hover:text-zinc-50`;
-
+export function DocsNav() {
   return (
-    <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-      <nav className="flex flex-wrap items-center gap-4 text-sm">
-        <Link href="/" className={linkClass("uber")}>
-          Uber Eats API
-        </Link>
-        <span className={textMuted}>|</span>
-        <Link href="/mapistry/docs" className={linkClass("mapistry")}>
-          Mapistry API
-        </Link>
-        <span className={textMuted}>|</span>
-        <Link href="/mapistry/dashboard" className={linkClass("app")}>
-          Dashboard
-        </Link>
-        <span className={textMuted}>|</span>
-        <Link href="/mapistry/srm" className={linkClass("alerts")}>
-          SRM Generator
-        </Link>
-      </nav>
-      <ThemeToggle />
+    <div className="mb-12 flex items-center justify-between border-b border-black pb-4">
+      <Link href="/" className="text-sm font-medium text-black">
+        Documentation
+      </Link>
     </div>
   );
 }
@@ -110,84 +48,77 @@ export function CopyButton({ text }) {
     <button
       type="button"
       onClick={handleCopy}
-      className={`shrink-0 rounded-md border px-2.5 py-1 text-xs transition-colors ${cardBorder} bg-zinc-50 text-zinc-600 hover:border-cyan-500/50 hover:text-cyan-600 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-cyan-400`}
+      className="shrink-0 border border-black px-2.5 py-1 text-xs font-medium text-black hover:bg-black hover:text-white"
     >
-      {copied ? "Copiado" : "Copiar"}
+      {copied ? "Copied" : "Copy"}
     </button>
   );
 }
 
-export function CodeBlock({ code, label }) {
+export function HighlightedCode({
+  code,
+  language = "json",
+  label,
+  className = "",
+  showHeader = true,
+}) {
+  const html = useMemo(() => highlightCode(code, language), [code, language]);
+  const langClass = `language-${language}`;
+
   return (
-    <div className="mt-3">
-      {label && (
-        <p
-          className={`mb-1.5 text-xs font-medium uppercase tracking-wider ${textLabel}`}
-        >
-          {label}
-        </p>
-      )}
-      <div className={`relative rounded-lg border ${cardBorder} ${codeSurface}`}>
-        <div
-          className={`flex items-center justify-between border-b px-3 py-2 ${cardBorder}`}
-        >
-          <span className={`font-mono text-xs ${textMuted}`}>json</span>
+    <div className={`docs-code-block ${className}`}>
+      {showHeader && (
+        <div className="docs-code-header">
+          <span>{label || language}</span>
           <CopyButton text={code} />
         </div>
-        <pre
-          className={`overflow-x-auto p-4 font-mono text-xs leading-relaxed sm:text-sm ${textCode}`}
-        >
-          <code>{code}</code>
-        </pre>
-      </div>
+      )}
+      <pre className={langClass}>
+        <code className={langClass} dangerouslySetInnerHTML={{ __html: html }} />
+      </pre>
     </div>
   );
 }
 
-export function MethodBadge({ method }) {
-  const colors =
-    method === "GET"
-      ? "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800/80 dark:text-zinc-300"
-      : method === "DELETE"
-        ? "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400"
-        : "border-cyan-500/40 bg-cyan-500/10 text-cyan-700 dark:text-[#06B6D4]";
-
+export function CodeBlock({ code, label, language = "json" }) {
   return (
-    <span
-      className={`rounded border px-2 py-0.5 font-mono text-xs font-semibold ${colors}`}
-    >
-      {method}
-    </span>
+    <div className="mt-4">
+      {label && (
+        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-black">{label}</p>
+      )}
+      <HighlightedCode code={code} language={language} label={language} />
+    </div>
   );
 }
 
-export function InfoBanner({ children }) {
-  return (
-    <div
-      className={`mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm ${textSecondary}`}
-    >
-      {children}
-    </div>
-  );
+export function MethodBadge({ method, variant }) {
+  const useGreen = variant === "get";
+  const useBlue = variant === "post";
+
+  let className = "border border-black px-2 py-0.5 font-mono text-xs font-bold text-black";
+  if (useGreen) {
+    className =
+      "border border-emerald-700 bg-emerald-600 px-2 py-0.5 font-mono text-xs font-bold text-white";
+  } else if (useBlue) {
+    className =
+      "border border-blue-700 bg-blue-600 px-2 py-0.5 font-mono text-xs font-bold text-white";
+  }
+
+  return <span className={className}>{method}</span>;
 }
 
 export function EndpointCard({ endpoint }) {
   return (
-    <article className={`${card} p-5 sm:p-6`}>
+    <article className="border border-black p-5 sm:p-6">
       <div className="flex flex-wrap items-center gap-3">
         <MethodBadge method={endpoint.method} />
-        <code className={`font-mono text-sm sm:text-base ${textPrimary}`}>
-          {endpoint.path}
-        </code>
+        <code className="font-mono text-sm text-black sm:text-base">{endpoint.path}</code>
       </div>
-      <p className={`mt-3 text-sm ${textSecondary}`}>{endpoint.description}</p>
+      <p className="mt-3 text-sm leading-relaxed text-black">{endpoint.description}</p>
       {endpoint.header && (
-        <div
-          className={`mt-3 rounded-lg border px-3 py-2 ${cardBorder} ${codeSurface}`}
-        >
-          <p className={`text-xs ${textLabel}`}>
-            Header:{" "}
-            <span className={`font-mono ${textAccent}`}>{endpoint.header}</span>
+        <div className="mt-3 border border-black px-3 py-2">
+          <p className="text-xs text-black">
+            Header: <span className="font-mono font-bold">{endpoint.header}</span>
           </p>
         </div>
       )}
@@ -198,30 +129,95 @@ export function EndpointCard({ endpoint }) {
   );
 }
 
-export function CredentialsCard({ title, code, copyText, accentClass = textAccent }) {
-  return (
-    <div className={card}>
-      <div
-        className={`flex items-center justify-between border-b px-4 py-3 ${cardBorder}`}
-      >
-        <span className={`font-mono text-xs font-medium ${accentClass}`}>{title}</span>
-        <CopyButton text={copyText} />
-      </div>
-      <pre
-        className={`overflow-x-auto p-4 font-mono text-sm leading-relaxed sm:p-6 ${textCode}`}
-      >
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
+export function CredentialsCard({ title, code, copyText }) {
+  return <HighlightedCode code={code} language="kv" label={title} />;
 }
 
 export function DocsFooter({ text }) {
   return (
-    <footer
-      className={`mt-16 border-t pt-8 text-center text-xs text-zinc-500 dark:text-zinc-600 ${cardBorder}`}
-    >
+    <footer className="mt-16 border-t border-black pt-8 text-center text-xs text-black">
       {text}
     </footer>
+  );
+}
+
+export function DocsTable({ children, minWidth, variant }) {
+  const wrapClass =
+    variant === "dark" ? "docs-table-wrap docs-table-wrap--dark" : "docs-table-wrap";
+
+  return (
+    <div className={wrapClass}>
+      <table className="docs-table" style={minWidth ? { minWidth } : undefined}>
+        {children}
+      </table>
+    </div>
+  );
+}
+
+export function DocsFeatureCard({ title, children }) {
+  return (
+    <article className="flex h-full flex-col border border-black bg-[#FAFAFA] p-5 sm:p-6">
+      <h3 className="text-lg font-bold text-black">{title}</h3>
+      <p className="mt-3 flex-1 text-sm leading-relaxed text-black sm:text-base">{children}</p>
+    </article>
+  );
+}
+
+export function DocsStepList({ steps }) {
+  return (
+    <ol className="mt-6 space-y-8">
+      {steps.map((step, index) => (
+        <li key={step.title} className="flex gap-4 sm:gap-6">
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-black bg-black text-lg font-bold text-white"
+            aria-hidden
+          >
+            {index + 1}
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-lg font-bold text-black sm:text-xl">{step.title}</h3>
+            <p className={`mt-2 max-w-3xl ${uberBody}`}>{step.description}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+export function DocsNextStepCard({ description, children }) {
+  return (
+    <article className="border border-black p-5 transition-colors hover:bg-[#FAFAFA] sm:p-6">
+      <div className="text-lg font-bold text-black">{children}</div>
+      <p className={`mt-2 text-sm text-black/70 sm:text-base`}>{description}</p>
+    </article>
+  );
+}
+
+export function ChangelogBadge({ variant, children }) {
+  const className =
+    variant === "current"
+      ? "inline-block rounded border border-emerald-700 bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white"
+      : "inline-block rounded border border-zinc-400 bg-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-700";
+
+  return <span className={className}>{children}</span>;
+}
+
+export function ChangelogWarning({ children }) {
+  return (
+    <div className="mt-4 max-w-3xl rounded border border-amber-400 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-950">
+      {children}
+    </div>
+  );
+}
+
+export function DocPage({ title, subtitle, children, hero = false }) {
+  return (
+    <article>
+      <h1 className={hero ? uberHeroHeading : uberHeading}>{title}</h1>
+      {subtitle && (
+        <p className={hero ? uberHeroSubtitle : `mt-4 max-w-3xl ${uberBody}`}>{subtitle}</p>
+      )}
+      <div className={hero ? "mt-10" : "mt-8"}>{children}</div>
+    </article>
   );
 }
