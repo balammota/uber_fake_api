@@ -109,7 +109,7 @@ export default function SandboxPage() {
       setToast(
         body.logCount
           ? `✅ ${body.logCount} API logs generated`
-          : "✅ Data generated for 10 drivers"
+          : `✅ New scores generated for ${body.updated ?? 10} drivers`
       );
       await loadData();
     } catch (err) {
@@ -274,7 +274,8 @@ export default function SandboxPage() {
             <section id="generator">
               <h2 className="text-2xl font-bold text-white">Generate Driving Data</h2>
               <p className="mt-2 text-zinc-500">
-                Simulate new driving behavior scores for all drivers
+                Simulate new driving behavior scores for all drivers (fixed fleet of 10 — each run
+                adds new score snapshots)
               </p>
 
               <div className="mt-6 grid gap-6 lg:grid-cols-2">
