@@ -1,11 +1,13 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState } from "react";
+import { UBER_PORTAL_USERS } from "@/lib/uber-portal-constants";
+import { getInitialTourUser } from "@/lib/telematics-tour-steps";
 
 const UberPortalContext = createContext(null);
 
 export function UberPortalProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getInitialTourUser("uber", UBER_PORTAL_USERS));
 
   const value = useMemo(
     () => ({

@@ -26,7 +26,7 @@ export default function StateSafeLoginPage() {
             <p className="mt-2 text-sm text-[#6B7280]">Powered by Uber Telematics API</p>
           </div>
 
-          <div className="mt-8 space-y-3">
+          <div className="mt-8 space-y-3" data-tour="insurer-login-users">
             {STATESAFE_USERS.map((user) => (
               <button
                 key={user.id}

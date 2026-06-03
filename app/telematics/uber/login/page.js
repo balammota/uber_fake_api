@@ -24,7 +24,7 @@ export default function UberPortalLoginPage() {
             <p className="mt-2 text-sm text-zinc-500">Partner & System Management</p>
           </div>
 
-          <div className="mt-8 space-y-3">
+          <div className="mt-8 space-y-3" data-tour="uber-login-users">
             {UBER_PORTAL_USERS.map((user) => (
               <button
                 key={user.id}

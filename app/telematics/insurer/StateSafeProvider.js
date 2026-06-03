@@ -1,11 +1,13 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState } from "react";
+import { STATESAFE_USERS } from "@/lib/statesafe-constants";
+import { getInitialTourUser } from "@/lib/telematics-tour-steps";
 
 const StateSafeContext = createContext(null);
 
 export function StateSafeProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getInitialTourUser("insurer", STATESAFE_USERS));
 
   const value = useMemo(
     () => ({

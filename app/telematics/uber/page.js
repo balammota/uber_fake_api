@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uberTabsForUser } from "@/lib/uber-portal-constants";
+import { readTourTab, TOUR_STORAGE } from "@/lib/telematics-tour-steps";
 import { useUberPortalData } from "@/lib/uber-portal-data";
 import { useUberPortal } from "./UberPortalProvider";
 import {
@@ -51,6 +52,11 @@ export default function UberTelematicsPage() {
   useEffect(() => {
     if (!user) router.replace("/telematics/uber/login");
   }, [user, router]);
+
+  useEffect(() => {
+    const tourTab = readTourTab(TOUR_STORAGE.uberTab);
+    if (tourTab) setActiveTab(tourTab);
+  }, [user]);
 
   useEffect(() => {
     if (tabs.length && !tabs.some((t) => t.id === activeTab)) {

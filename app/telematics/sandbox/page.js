@@ -293,6 +293,7 @@ export default function SandboxPage() {
                   </button>
                 </TelematicsCard>
 
+                <div data-tour="scenario-picker">
                 <TelematicsCard title="Generate Custom Scenario">
                   <p className="mb-4 text-sm text-zinc-400">
                     Choose a specific scenario to test edge cases and alert triggers.
@@ -320,6 +321,7 @@ export default function SandboxPage() {
                     {genLoading ? "Generating data…" : "Generate This Scenario"}
                   </button>
                 </TelematicsCard>
+                </div>
               </div>
 
               {genResults && genResults.length > 0 && (

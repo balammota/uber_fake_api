@@ -25,6 +25,7 @@ export function UberNavbar({ user, tabs, activeTab, onTabChange, onSwitchUser })
             <button
               key={tab.id}
               type="button"
+              data-tour={tab.id === "alerts" ? "nav-alerts" : undefined}
               onClick={() => onTabChange(tab.id)}
               className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
                 activeTab === tab.id
@@ -56,6 +57,7 @@ export function UberNavbar({ user, tabs, activeTab, onTabChange, onSwitchUser })
             <button
               key={tab.id}
               type="button"
+              data-tour={tab.id === "alerts" ? "nav-alerts" : undefined}
               onClick={() => onTabChange(tab.id)}
               className={`shrink-0 rounded px-3 py-1 text-xs font-medium ${
                 activeTab === tab.id ? "bg-white/10 text-white" : "text-zinc-400"

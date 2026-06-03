@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { tabsForUser } from "@/lib/statesafe-constants";
+import { readTourTab, TOUR_STORAGE } from "@/lib/telematics-tour-steps";
 import { useStateSafeData } from "@/lib/statesafe-data";
 import { useStateSafe } from "./StateSafeProvider";
 import {
@@ -33,6 +34,11 @@ export default function StateSafeInsurerPage() {
       router.replace("/telematics/insurer/login");
     }
   }, [user, router]);
+
+  useEffect(() => {
+    const tourTab = readTourTab(TOUR_STORAGE.insurerTab);
+    if (tourTab) setActiveTab(tourTab);
+  }, [user]);
 
   useEffect(() => {
     if (tabs.length && !tabs.some((t) => t.id === activeTab)) {

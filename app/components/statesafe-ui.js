@@ -76,6 +76,7 @@ export function SSNavbar({ user, tabs, activeTab, onTabChange, onSwitchUser }) {
             <button
               key={tab.id}
               type="button"
+              data-tour={tab.id === "risk" ? "nav-risk" : undefined}
               onClick={() => onTabChange(tab.id)}
               className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
                 activeTab === tab.id ? "bg-white/20 text-white" : "text-white/85 hover:bg-white/10"
@@ -105,6 +106,7 @@ export function SSNavbar({ user, tabs, activeTab, onTabChange, onSwitchUser }) {
             <button
               key={tab.id}
               type="button"
+              data-tour={tab.id === "risk" ? "nav-risk" : undefined}
               onClick={() => onTabChange(tab.id)}
               className={`shrink-0 rounded px-3 py-1 text-xs font-medium ${
                 activeTab === tab.id ? "bg-white/20" : "text-white/85"
