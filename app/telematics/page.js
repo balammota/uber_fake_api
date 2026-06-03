@@ -5,11 +5,11 @@ export default function TelematicsLandingPage() {
     <div className="min-h-screen bg-black text-zinc-100">
       <header className="border-b border-zinc-800 bg-black">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link href="/" className="text-lg font-bold text-white hover:opacity-90">
+          <Link href="/telematics" className="text-lg font-bold text-white hover:opacity-90">
             Uber Developers
           </Link>
-          <Link href="/" className="text-sm text-zinc-400 hover:text-white">
-            ← API Docs
+          <Link href="/docs" className="text-sm text-zinc-400 hover:text-white">
+            API Docs →
           </Link>
         </div>
       </header>
@@ -33,7 +33,7 @@ export default function TelematicsLandingPage() {
               guides for insurance partners.
             </p>
             <Link
-              href="/telematics/docs"
+              href="/docs"
               className="mt-6 inline-flex w-fit items-center rounded border border-zinc-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
             >
               View API Docs →

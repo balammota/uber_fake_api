@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/telematics/uber", label: "Uber Portal" },
   { href: "/telematics/insurer", label: "Insurer Portal" },
-  { href: "/", label: "API Docs" },
+  { href: "/docs", label: "API Docs" },
 ];
 
 export default function TelematicsNav({ title }) {

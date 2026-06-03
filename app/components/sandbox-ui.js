@@ -19,7 +19,7 @@ export function SandboxNavbar() {
           <Link href="/telematics/insurer" className="text-zinc-400 hover:text-white">
             Insurer Portal
           </Link>
-          <Link href="/telematics/docs" className="text-zinc-400 hover:text-white">
+          <Link href="/docs" className="text-zinc-400 hover:text-white">
             API Docs
           </Link>
         </nav>
@@ -44,7 +44,7 @@ export function SandboxFooter() {
         <Link href="/telematics/sandbox" className="text-amber-400 hover:text-amber-300">
           Sandbox
         </Link>
-        <Link href="/telematics/docs" className="hover:text-white">
+        <Link href="/docs" className="hover:text-white">
           API Documentation
         </Link>
       </div>

@@ -28,7 +28,7 @@ export function UberFeature({ title, children }) {
 export function DocsNav() {
   return (
     <div className="mb-12 flex items-center justify-between border-b border-black pb-4">
-      <Link href="/" className="text-sm font-medium text-black">
+      <Link href="/docs" className="text-sm font-medium text-black">
         Documentation
       </Link>
     </div>

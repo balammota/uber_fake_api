@@ -100,7 +100,7 @@ export function UberFooterLinks() {
         <Link href="/telematics/insurer" className="hover:text-white">
           View Insurer Portal
         </Link>
-        <Link href="/telematics/docs" className="hover:text-white">
+        <Link href="/docs" className="hover:text-white">
           API Documentation
         </Link>
         <Link href="/telematics/sandbox" className="text-amber-400 hover:text-amber-300">

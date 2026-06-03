@@ -40,14 +40,14 @@ export default function DocsTopBar({ onMenuToggle, menuOpen }) {
           <HamburgerIcon />
         </button>
 
-        <Link href="/" className="flex shrink-0 items-baseline gap-1.5 no-underline text-white">
+        <Link href="/telematics" className="flex shrink-0 items-baseline gap-1.5 no-underline text-white">
           <span className="text-2xl font-medium leading-none">Uber</span>
           <span className="text-[22px] font-medium leading-none">Developers</span>
         </Link>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <Link
-            href="/"
+            href="/docs"
             className="hidden px-3 text-base leading-[35px] text-white no-underline hover:opacity-80 sm:block"
           >
             Docs

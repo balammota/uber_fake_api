@@ -155,7 +155,7 @@ export function SSFooterLinks() {
         <Link href="/telematics/uber" className="hover:text-[#C8102E]">
           View Uber Partner Portal
         </Link>
-        <Link href="/telematics/docs" className="hover:text-[#C8102E]">
+        <Link href="/docs" className="hover:text-[#C8102E]">
           API Documentation
         </Link>
         <Link href="/telematics/sandbox" className="hover:text-[#C8102E]">

@@ -1,5 +1,5 @@
-import DocsLayout from "@/app/components/DocsLayout";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <DocsLayout />;
+  redirect("/telematics");
 }
