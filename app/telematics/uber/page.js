@@ -1,235 +1,180 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import TelematicsNav from "@/components/TelematicsNav";
-import { createSupabaseBrowser } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+import { uberTabsForUser } from "@/lib/uber-portal-constants";
+import { useUberPortalData } from "@/lib/uber-portal-data";
+import { useUberPortal } from "./UberPortalProvider";
 import {
-  consentBadgeClass,
-  formatTime,
-  formatUsd,
-  gradeBadgeClass,
-  latestScoresByDriver,
-  partnerStatusClass,
-  statusCodeClass,
-} from "@/lib/telematics-utils";
-import {
-  Badge,
-  ErrorState,
-  LoadingState,
-  PrimaryButton,
-  TelematicsCard,
-  TelematicsStatCard,
-  TelematicsTable,
-  Toast,
-} from "@/app/components/telematics-ui";
+  UberNavbar,
+  UberStatusBar,
+  UberFooterLinks,
+  UberSpinner,
+} from "@/app/components/uber-portal-ui";
+import { ErrorState, LoadingState, Toast } from "@/app/components/telematics-ui";
+import OverviewTab from "./tabs/OverviewTab";
+import PartnersTab from "./tabs/PartnersTab";
+import DriverConsentTab from "./tabs/DriverConsentTab";
+import PartnerDebugTab from "./tabs/PartnerDebugTab";
+import SystemHealthTab from "./tabs/SystemHealthTab";
+import ApiLogsTab from "./tabs/ApiLogsTab";
+import AlertsTab from "./tabs/AlertsTab";
+import RevenueTab from "./tabs/RevenueTab";
+import PartnerPipelineTab from "./tabs/PartnerPipelineTab";
+import MarketAnalyticsTab from "./tabs/MarketAnalyticsTab";
 
 export default function UberTelematicsPage() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [partners, setPartners] = useState([]);
-  const [drivers, setDrivers] = useState([]);
-  const [scores, setScores] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [generating, setGenerating] = useState(false);
+  const router = useRouter();
+  const { user, logout } = useUberPortal();
+  const tabs = useMemo(() => (user ? uberTabsForUser(user.id) : []), [user]);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [debugPartnerId, setDebugPartnerId] = useState(null);
+  const [acknowledged, setAcknowledged] = useState(new Set());
   const [toast, setToast] = useState("");
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const supabase = createSupabaseBrowser();
-      const [pRes, dRes, sRes, lRes] = await Promise.all([
-        supabase.from("telematics_partners").select("*").order("partner_name"),
-        supabase.from("telematics_drivers").select("*").order("driver_id"),
-        supabase.from("telematics_scores").select("*").order("recorded_at", { ascending: false }),
-        supabase
-          .from("telematics_logs")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(20),
-      ]);
+  const showToast = useCallback((msg) => setToast(msg), []);
 
-      if (pRes.error) throw pRes.error;
-      if (dRes.error) throw dRes.error;
-      if (sRes.error) throw sRes.error;
-      if (lRes.error) throw lRes.error;
-
-      setPartners(pRes.data || []);
-      setDrivers(dRes.data || []);
-      setScores(sRes.data || []);
-      setLogs(lRes.data || []);
-    } catch (err) {
-      setError(err?.message || "Failed to load telematics data");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const {
+    loading,
+    error,
+    partners,
+    drivers,
+    logs,
+    webhooks,
+    scoreMap,
+    alerts,
+    systemMetrics,
+    lastUpdated,
+    reload,
+  } = useUberPortalData(!!user, acknowledged);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!user) router.replace("/telematics/uber/login");
+  }, [user, router]);
 
-  const scoreMap = useMemo(() => latestScoresByDriver(scores), [scores]);
-
-  const stats = useMemo(() => {
-    const activeDrivers = drivers.filter((d) => d.consent_status === "active").length;
-    const apiToday = partners.reduce((a, p) => a + (p.api_calls_today || 0), 0);
-    const revenue = partners.reduce((a, p) => a + Number(p.revenue_usd || 0), 0);
-    return {
-      partners: partners.length,
-      activeDrivers,
-      apiToday,
-      revenue: formatUsd(revenue),
-    };
-  }, [partners, drivers]);
-
-  const partnerRows = useMemo(
-    () =>
-      partners.map((p) => ({
-        key: p.partner_id,
-        cells: [
-          p.partner_name,
-          <Badge key="s" className={partnerStatusClass(p.status)}>
-            {p.status}
-          </Badge>,
-          p.drivers_connected,
-          p.api_calls_today?.toLocaleString(),
-          p.api_calls_total?.toLocaleString(),
-          formatUsd(Number(p.revenue_usd)),
-        ],
-      })),
-    [partners]
-  );
-
-  const driverRows = useMemo(
-    () =>
-      drivers.map((d) => {
-        const sc = scoreMap.get(d.driver_id);
-        return {
-          key: d.driver_id,
-          cells: [
-            d.driver_id,
-            d.driver_name,
-            d.city,
-            <Badge key="c" className={consentBadgeClass(d.consent_status)}>
-              {d.consent_status}
-            </Badge>,
-            sc?.score ?? "—",
-            sc?.grade ? (
-              <Badge key="g" className={gradeBadgeClass(sc.grade)}>
-                {sc.grade}
-              </Badge>
-            ) : (
-              "—"
-            ),
-            sc?.recorded_at ? formatTime(sc.recorded_at) : "—",
-          ],
-        };
-      }),
-    [drivers, scoreMap]
-  );
-
-  const logRows = useMemo(
-    () =>
-      logs.map((l) => ({
-        key: l.id,
-        cells: [
-          formatTime(l.created_at || l.timestamp_ms),
-          l.partner_id,
-          l.driver_id || "—",
-          <span key="e" className="font-mono text-xs">
-            {l.endpoint}
-          </span>,
-          <span key="st" className={statusCodeClass(l.status_code)}>
-            {l.status_code}
-          </span>,
-          `${l.response_time_ms} ms`,
-        ],
-      })),
-    [logs]
-  );
-
-  async function handleGenerate() {
-    setGenerating(true);
-    try {
-      const res = await fetch("/api/telematics/generate-scores", { method: "POST" });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Generate failed");
-      setToast(`Score data updated for ${body.updated} drivers`);
-      await loadData();
-    } catch (err) {
-      setToast(err?.message || "Failed to generate scores");
-    } finally {
-      setGenerating(false);
+  useEffect(() => {
+    if (tabs.length && !tabs.some((t) => t.id === activeTab)) {
+      setActiveTab(tabs[0].id);
     }
+  }, [tabs, activeTab]);
+
+  function handleSwitchUser() {
+    logout();
+    router.push("/telematics/uber/login");
   }
+
+  function handleDebugPartner(partnerId) {
+    setDebugPartnerId(partnerId);
+    setActiveTab("debug");
+    showToast("Partner debug view opened");
+  }
+
+  function handleImpersonate(partnerId) {
+    setDebugPartnerId(partnerId);
+    setActiveTab("debug");
+    showToast("Impersonating partner view");
+  }
+
+  function handleAcknowledge(id) {
+    setAcknowledged((prev) => new Set([...prev, id]));
+    showToast("Alert acknowledged");
+  }
+
+  function handleDismiss(id) {
+    setAcknowledged((prev) => new Set([...prev, id]));
+    showToast("Alert dismissed");
+  }
+
+  function handleNotify(alert) {
+    showToast(`Notification sent to ${alert.partner}`);
+  }
+
+  function handleInvestigate() {
+    setActiveTab("logs");
+  }
+
+  if (!user) return <UberSpinner label="Redirecting to login…" />;
 
   return (
     <>
-      <TelematicsNav title="Uber Telematics" />
-      <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">
-            Uber Telematics — Partner Management
-          </h1>
-          <PrimaryButton onClick={handleGenerate} disabled={generating || loading}>
-            {generating ? "Generating…" : "Generate New Score Data"}
-          </PrimaryButton>
-        </div>
+      <UberNavbar
+        user={user}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onSwitchUser={handleSwitchUser}
+      />
+      <UberStatusBar
+        degraded={systemMetrics.degraded}
+        latency={systemMetrics.latency}
+        lastUpdated={lastUpdated}
+      />
 
-        {loading && <LoadingState />}
-        {!loading && error && <ErrorState message={error} onRetry={loadData} />}
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        {loading && <LoadingState message="Loading portal data…" />}
+        {!loading && error && <ErrorState message={error} onRetry={reload} />}
 
         {!loading && !error && (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <TelematicsStatCard label="Total Partners" value={stats.partners} />
-              <TelematicsStatCard label="Active Drivers" value={stats.activeDrivers} />
-              <TelematicsStatCard label="API Calls Today" value={stats.apiToday.toLocaleString()} />
-              <TelematicsStatCard label="Total Revenue" value={stats.revenue} />
-            </div>
-
-            <TelematicsCard title="Insurance Partners">
-              <TelematicsTable
-                columns={[
-                  "Partner",
-                  "Status",
-                  "Drivers Connected",
-                  "API Calls Today",
-                  "Total Calls",
-                  "Revenue",
-                ]}
-                rows={partnerRows}
-                emptyMessage="No partners configured"
+            {activeTab === "overview" && (
+              <OverviewTab
+                user={user}
+                partners={partners}
+                drivers={drivers}
+                logs={logs}
+                alerts={alerts}
+                systemMetrics={systemMetrics}
               />
-            </TelematicsCard>
-
-            <TelematicsCard title="Driver Consent Overview">
-              <TelematicsTable
-                columns={[
-                  "Driver ID",
-                  "Name",
-                  "City",
-                  "Consent Status",
-                  "Score",
-                  "Grade",
-                  "Last Updated",
-                ]}
-                rows={driverRows}
-                emptyMessage="No drivers"
+            )}
+            {activeTab === "partners" && (
+              <PartnersTab
+                partners={partners}
+                logs={logs}
+                onDebugPartner={handleDebugPartner}
+                onImpersonate={handleImpersonate}
+                onReload={reload}
+                onToast={showToast}
               />
-            </TelematicsCard>
-
-            <TelematicsCard title="API Request Logs">
-              <TelematicsTable
-                columns={["Time", "Partner", "Driver", "Endpoint", "Status", "Response Time"]}
-                rows={logRows}
-                emptyMessage="No logs yet — make API calls from the Insurer Portal"
+            )}
+            {activeTab === "consent" && (
+              <DriverConsentTab drivers={drivers} scoreMap={scoreMap} />
+            )}
+            {activeTab === "debug" && (
+              <PartnerDebugTab
+                partners={partners}
+                logs={logs}
+                webhooks={webhooks}
+                drivers={drivers}
+                scoreMap={scoreMap}
+                selectedPartnerId={debugPartnerId}
+                onSelectPartner={setDebugPartnerId}
+                onToast={showToast}
               />
-            </TelematicsCard>
+            )}
+            {activeTab === "health" && (
+              <SystemHealthTab logs={logs} systemMetrics={systemMetrics} />
+            )}
+            {activeTab === "logs" && <ApiLogsTab logs={logs} onToast={showToast} />}
+            {activeTab === "alerts" && (
+              <AlertsTab
+                alerts={alerts}
+                user={user}
+                acknowledged={acknowledged}
+                onAcknowledge={handleAcknowledge}
+                onInvestigate={handleInvestigate}
+                onNotify={handleNotify}
+                onDismiss={handleDismiss}
+                onToast={showToast}
+              />
+            )}
+            {activeTab === "revenue" && <RevenueTab partners={partners} />}
+            {activeTab === "pipeline" && <PartnerPipelineTab partners={partners} />}
+            {activeTab === "market" && <MarketAnalyticsTab />}
           </>
         )}
       </main>
+
+      <UberFooterLinks />
       <Toast message={toast} onClose={() => setToast("")} />
     </>
   );

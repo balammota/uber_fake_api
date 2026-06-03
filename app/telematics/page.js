@@ -21,7 +21,7 @@ export default function TelematicsLandingPage() {
           partners. Choose a portal to explore partner management or insurer consumption flows.
         </p>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <article className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
             <h2 className="text-xl font-bold text-white">Uber Partner Dashboard</h2>
             <p className="mt-3 flex-1 text-zinc-400">
@@ -46,6 +46,24 @@ export default function TelematicsLandingPage() {
               className="mt-6 inline-flex w-fit items-center rounded bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200"
             >
               Enter Insurer Portal →
+            </Link>
+          </article>
+
+          <article className="flex flex-col rounded-xl border border-amber-500/30 bg-zinc-900/60 p-6 sm:p-8">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-white">API Sandbox</h2>
+              <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-bold uppercase text-amber-400">
+                SANDBOX
+              </span>
+            </div>
+            <p className="mt-3 flex-1 text-zinc-400">
+              Generate test data, simulate scenarios, and validate integrations before going live.
+            </p>
+            <Link
+              href="/telematics/sandbox"
+              className="mt-6 inline-flex w-fit items-center rounded bg-amber-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-500"
+            >
+              Open Sandbox →
             </Link>
           </article>
         </div>
