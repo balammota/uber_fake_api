@@ -12,6 +12,7 @@ import {
 } from "@/lib/telematics-utils";
 import { partnerDisplayName } from "@/lib/uber-portal-constants";
 import { formatTimeAgo, PARTNER_OPTIONS, SCENARIO_OPTIONS } from "@/lib/sandbox-utils";
+import { SANDBOX_BATCH_SIZE, SANDBOX_POOL_SIZE } from "@/lib/sandbox-driver-pool";
 import { ConfirmModal, SandboxFooter, SandboxNavbar } from "@/app/components/sandbox-ui";
 import {
   Badge,
@@ -84,7 +85,15 @@ export default function SandboxPage() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    async function init() {
+      try {
+        await fetch("/api/telematics/sandbox/ensure-pool", { method: "POST" });
+      } catch {
+        /* pool seed is optional on first paint */
+      }
+      await loadData();
+    }
+    init();
   }, [loadData]);
 
   const scoreMap = useMemo(() => latestScoresByDriver(scores), [scores]);
@@ -109,7 +118,7 @@ export default function SandboxPage() {
       setToast(
         body.logCount
           ? `✅ ${body.logCount} API logs generated`
-          : `✅ New scores generated for ${body.updated ?? 10} drivers`
+          : `✅ Scores for ${body.updated ?? SANDBOX_BATCH_SIZE} random drivers (pool of ${body.pool_size ?? SANDBOX_POOL_SIZE})`
       );
       await loadData();
     } catch (err) {
@@ -255,7 +264,10 @@ export default function SandboxPage() {
           </div>
           {!loading && !error && (
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              <TelematicsStatCard label="Drivers in Sandbox" value={drivers.length} />
+              <TelematicsStatCard
+                label="Driver Pool"
+                value={`${drivers.length} / ${SANDBOX_POOL_SIZE}`}
+              />
               <TelematicsStatCard
                 label="Last Data Generated"
                 value={lastGenerated ? formatTimeAgo(lastGenerated) : "Never"}
@@ -274,15 +286,15 @@ export default function SandboxPage() {
             <section id="generator">
               <h2 className="text-2xl font-bold text-white">Generate Driving Data</h2>
               <p className="mt-2 text-zinc-500">
-                Simulate new driving behavior scores for all drivers (fixed fleet of 10 — each run
-                adds new score snapshots)
+                Each run picks {SANDBOX_BATCH_SIZE} random drivers from a pool of {SANDBOX_POOL_SIZE}{" "}
+                and generates new score snapshots
               </p>
 
               <div className="mt-6 grid gap-6 lg:grid-cols-2">
                 <TelematicsCard title="Generate Random Data">
                   <p className="mb-4 text-sm text-zinc-400">
-                    Generate realistic random scores for all 10 drivers. Scores vary naturally within
-                    each driver&apos;s typical range.
+                    Pick {SANDBOX_BATCH_SIZE} random drivers from the {SANDBOX_POOL_SIZE}-driver pool.
+                    Scores vary naturally on each run.
                   </p>
                   <button
                     type="button"
@@ -511,7 +523,7 @@ export default function SandboxPage() {
                   {
                     n: 1,
                     title: "Generate Data",
-                    body: "Click 'Generate Random Scores' above to create fresh driving data for all 10 drivers",
+                    body: `Click 'Generate Random Scores' above — each run picks ${SANDBOX_BATCH_SIZE} drivers at random from the pool of ${SANDBOX_POOL_SIZE}`,
                     action: (
                       <a href="#generator" className="text-sm text-amber-400 hover:text-amber-300">
                         Go to Generator ↑
