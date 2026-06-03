@@ -26,7 +26,7 @@ export default function StateSafeInsurerPage() {
   const tabs = useMemo(() => (user ? tabsForUser(user.id) : []), [user]);
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  const { loading, error, drivers, scoreMap, stats, webhooks, logs, partner, reload } =
+  const { loading, refreshing, error, drivers, scoreMap, stats, webhooks, logs, partner, reload } =
     useStateSafeData(!!user);
 
   useEffect(() => {
@@ -72,6 +72,9 @@ export default function StateSafeInsurerPage() {
         {!loading && error && <SSError message={error} onRetry={reload} />}
         {!loading && !error && (
           <>
+            {refreshing && (
+              <p className="mb-4 text-sm text-[#6B7280]">Updating portal data…</p>
+            )}
             {activeTab === "dashboard" && (
               <DashboardTab stats={stats} webhooks={webhooks} />
             )}

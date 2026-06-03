@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createSupabaseBrowser } from "@/lib/supabase";
-import { logApiCall } from "@/lib/statesafe-data";
 import {
   assessmentRecommendation,
   gradeBadgeStyles,
@@ -38,21 +36,12 @@ export default function RiskTab({ onReload }) {
       const responseMs = Date.now() - start;
       const body = await res.json();
 
-      const supabase = createSupabaseBrowser();
-      await logApiCall(supabase, {
-        driver_id: id,
-        endpoint,
-        status_code: res.status,
-        response_time_ms: responseMs,
-      });
-      await onReload?.();
-
       if (res.status === 403) {
         setResult({ error: true, status: 403 });
         return;
       }
       if (!res.ok) {
-        setResult({ error: true, status: res.status, message: body.message });
+        setResult({ error: true, status: res.status, message: body.message || body.error });
         return;
       }
 
@@ -70,6 +59,19 @@ export default function RiskTab({ onReload }) {
       }
 
       setResult({ error: false, score: body, events });
+
+      fetch("/api/telematics/log-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          driver_id: id,
+          endpoint,
+          status_code: res.status,
+          response_time_ms: responseMs,
+        }),
+      })
+        .then(() => onReload?.())
+        .catch(() => {});
     } catch (err) {
       setResult({ error: true, message: err?.message || "Assessment failed" });
     } finally {
